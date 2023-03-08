@@ -216,10 +216,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@panaromafinance/panaromaswap_v1core@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@panaromafinance/panaromaswap_v1core/-/panaromaswap_v1core-1.0.0.tgz#7e68c95a05d4e504d47ed65deb7986c809bf4902"
-  integrity sha512-zE1FjkbeI1SHkExzLwkaReT3auAH7ppfXLYH9/+3eO2z93ks6ic4iJbTenRlcpv6X5CZTWXS8XcC76pW64tEJA==
+"@panaromafinance/panaromaswap_v1core@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@panaromafinance/panaromaswap_v1core/-/panaromaswap_v1core-1.0.1.tgz#e6592fe2097230098d263a920b60e752123ffb26"
+  integrity sha512-a9OmMQG90Gn2TxDhp8fCcrk6EloRyqAxfWfKWgQ1fLRfaqv/2RzloFLcd+LU8l4D7t9+fo7i98ILCUhpK0H+Ww==
 
 "@panaromafinance/panaromaswap_v1lib@^1.0.0":
   version "1.0.0"

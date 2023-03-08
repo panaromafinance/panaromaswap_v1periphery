@@ -21,7 +21,7 @@ library PanaromaswapV1Library {
                 hex'ff',
                 factory,
                 keccak256(abi.encodePacked(token0, token1)),
-                hex'ba44739313b3d0de7692b7ec9db8aeb8aeeea5f947e99d2705c8653c779e7891' // init code hash
+                hex'6c8d7831eef18646858a2c88f785573cd04427fb7ce0625bd49d71b0bd4d294d' // init code hash
             ))));
     }
 

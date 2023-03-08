@@ -25,7 +25,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     address public feeTo;
     address public ptoken;
     address public refWalletFactory;
-    //0x2c0948EC0ABb380e74DA5c9bC78514C576F5c162
+    //0x2c0948EC0ABb380e74DA5c9bC78514C576F5c162 
     address private checkValidation;
     //0x4f5aE21Ca1d07E7d05A86f0a44369D5232173308
 
@@ -254,7 +254,6 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
         require(_checkValidation(msg.sender) == true);
         amounts = PanaromaswapV1Library.getAmountsOut(factory, amountIn, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*995/1000
         );
@@ -312,7 +311,6 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         require(_checkValidation(msg.sender) == true);
         require(path[0] == WETH, 'PanaromaswapV1Router: INVALID_PATH');
         amounts = PanaromaswapV1Library.getAmountsOut(factory, msg.value, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*995/1000));
         _swap(amounts, path, to);
@@ -352,7 +350,6 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         require(_checkValidation(msg.sender) == true);
         require(path[path.length - 1] == WETH, 'PanaromaswapV1Router: INVALID_PATH');
         amounts = PanaromaswapV1Library.getAmountsOut(factory, amountIn, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
         //path[0] = AVIL,  AVIL goes to lpool
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]
@@ -382,8 +379,6 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*995/1000));
         _swap(amounts, path, to);
-        // refund dust eth, if any
-        // if (msg.value > amounts[0]) TransferHelper.safeTransferETH(msg.sender, (msg.value - amounts[0])*995/1000);
         refPlanETHForToken(path, amounts);
     }
 
@@ -441,10 +436,6 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         );
         uint balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
         swapSupportingFeeOnTransferTokens(path, to);
-        require(
-            IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
-            'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT'
-        );
         refPlanTokenForTokenSupportingFee(path, amountIn);
     }
 
@@ -467,10 +458,6 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amountIn*995/10000));
         uint balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
         swapSupportingFeeOnTransferTokens(path, to);
-        require(
-            IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
-            'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT'
-        );
         refPlanETHForTokenSupportingFee(path, amountIn);
     }
 
@@ -494,7 +481,6 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         );
         swapSupportingFeeOnTransferTokens(path, address(this));
         uint amountOut = IERC20(WETH).balanceOf(address(this));
-        require(amountOut >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
         IWETH(WETH).withdraw(amountOut);
         TransferHelper.safeTransferETH(to, amountOut*995/1000);
 

@@ -1,6 +1,6 @@
 {
   "name": "@panaromafinance/panaromaswap_v1periphery",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Peripheral smart contracts for Panaromaswap V1",
   "engines": {
     "node": ">=10"
@@ -18,7 +18,7 @@
   ],
   "dependencies": {
     "@panaromafinance/panaromaswap_v1lib": "^1.0.0",
-    "@panaromafinance/panaromaswap_v1core": "^1.0.0"
+    "@panaromafinance/panaromaswap_v1core": "^1.0.1"
   },
   "devDependencies": {
     "@types/chai": "^4.2.6",
