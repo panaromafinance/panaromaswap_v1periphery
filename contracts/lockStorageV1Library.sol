@@ -9,6 +9,12 @@ import './libraries/SafeMath.sol';
 library lockStorageV1Library {
     using SafeMath for uint;
 
+    function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
+        require(tokenA != tokenB, 'PanaromaswapV1Library: IDENTICAL_ADDRESSES');
+        (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        require(token0 != address(0), 'PanaromaswapV1Library: ZERO_ADDRESS');
+    }
+
     // calculates the CREATE2 address for a pair without making any external calls
     function pairFor(address factory, address token0, address token1) internal pure returns (address pair) {
         (address token0, address token1) = sortTokens(token0, token1);
