@@ -11,7 +11,7 @@ library lockStorageV1Library {
 
     // calculates the CREATE2 address for a pair without making any external calls
     function pairFor(address factory, address token0, address token1) internal pure returns (address pair) {
-        // (address token0, address token1) = sortTokens(tokenA, tokenB);
+        (address token0, address token1) = sortTokens(token0, token1);
         pair = address(uint(keccak256(abi.encodePacked(
                 hex'ff',
                 factory,
