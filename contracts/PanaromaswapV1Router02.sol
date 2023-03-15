@@ -88,7 +88,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         uint amountBMin,
         address to,
         uint deadline
-    ) external virtual override returns (uint amountA, uint amountB, uint liquidity) {
+    ) external virtual override ensure(deadline) returns (uint amountA, uint amountB, uint liquidity) {
         require(_checkValidation(msg.sender) == true);
         (amountA, amountB) = _addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
         address pair = PanaromaswapV1Library.pairFor(factory, tokenA, tokenB);
@@ -104,7 +104,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         uint amountETHMin,
         address to,
         uint deadline
-    ) external virtual override payable returns (uint amountToken, uint amountETH, uint liquidity) {
+    ) external virtual override payable ensure(deadline) returns (uint amountToken, uint amountETH, uint liquidity) {
         require(_checkValidation(msg.sender) == true);
         (amountToken, amountETH) = _addLiquidity(
             token,
@@ -296,7 +296,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
             path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*995/1000
         );
         _swap(amounts, path, to);
-        refPlanTokensForETH(path);
+        refPlanTokensForETH(path, amounts[0]*5/10000);
     }
 
     //////updated///////////
@@ -335,7 +335,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         _swap(amounts, path, address(this));
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]*995/1000);
-        refPlanTokensForETH(path);
+        refPlanTokensForETH(path, amounts[amounts.length - 1]*5/10000);
     }
 
     
@@ -345,6 +345,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         external
         virtual
         override
+        ensure(deadline)
         returns (uint[] memory amounts)
     {
         require(_checkValidation(msg.sender) == true);
@@ -360,7 +361,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         //eth from router to reciever 
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]*995/1000);
-        refPlanTokensForETH(path);
+        refPlanTokensForETH(path, amounts[amounts.length - 1]*5/10000);
     }
 
     ///////////updated//////////////
@@ -380,6 +381,8 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*995/1000));
         _swap(amounts, path, to);
         refPlanETHForToken(path, amounts);
+        //refund dust
+        if (msg.value > amounts[0]) TransferHelper.safeTransferETH(msg.sender, msg.value - amounts[0]);
     }
 
     // **** SWAP (supporting fee-on-transfer tokens) ****
@@ -687,11 +690,13 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         }
     }
 
-    function refPlanTokensForETH(address[] memory path) internal virtual{
+    function refPlanTokensForETH(address[] memory path, uint amountIn) internal virtual{
         uint n = 1;
         address __user = getParentPair(msg.sender);
         {
-            
+            TransferHelper.safeTransferFrom(
+                        path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amountIn
+                    );
             for(n =1;n< 5;n++){
                if(__user == address(0) ){
                 swap_(path, feeTo);
