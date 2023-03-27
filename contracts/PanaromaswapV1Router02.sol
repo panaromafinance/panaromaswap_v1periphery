@@ -260,7 +260,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         _swap(amounts, path, to);
         refPlanTokensForTokens(path, amounts);
     }
-    function swap_(address[] memory path, address _to) private {
+    function swap_(address[] memory path, address _to, uint fact) private {
         for (uint256 i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], ptoken);
             (address token0, ) = PanaromaswapV1Library.sortTokens(input, output);
@@ -278,7 +278,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
             (uint256 amount0Out, uint256 amount1Out) =
                 input == token0 ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
             // address to = i < path.length - 2 ? PanaromaswapV1Library.pairFor(factory, output, path[i + 2]) : _to;
-            pair.swap(amount0Out, amount1Out, _to, new bytes(0));
+            pair.swap(amount0Out*fact/10000, amount1Out*fact/10000, _to, new bytes(0));
         }
     }
     //////////////////updated///////////////
@@ -497,7 +497,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                 WETH, 
                 msg.sender,
                 PanaromaswapV1Library.pairFor(factory, WETH, ptoken), 
-                amountOut*1/10000
+                amountOut*10/10000
             );
             __swap(feeTo);
            }else{
@@ -608,21 +608,20 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         address __user = getParentPair(msg.sender);
         {
             TransferHelper.safeTransferFrom(
-                        path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amounts[0]*5/10000
-                    );
-
+                path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amounts[0]*10/10000
+            );
             for(n =1;n< 5;n++){
                if(__user == address(0) ){
-                swap_(path, feeTo);
+                swap_(path, feeTo, 2);
                }else{
                    if(n == 1){
-                    swap_(path, __user);
+                    swap_(path, __user, 5);
                     __user = getParentPair(__user);
                    }else if(n == 2){
-                    swap_(path, __user);
+                    swap_(path, __user, 3);
                     __user = getParentPair(__user);
                    }else if(n == 3){
-                    swap_(path, __user);
+                    swap_(path, __user, 2);
                     __user = getParentPair(__user);
                    }
                }
@@ -635,7 +634,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         address __user = getParentPair(msg.sender);
 
         {
-            assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amountIn*5/10000));
+            assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amountIn*10/10000));
             for(n =1;n< 5;n++){
                if(__user == address(0) ){
                 _swapSupportingFeeOnTransferTokens(path, feeTo);
@@ -662,7 +661,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
             for(n =1;n< 5;n++){
                if(__user == address(0) ){
                 TransferHelper.safeTransferFrom(
-                    path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amountIn*1/10000
+                    path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amountIn*2/10000
                 );
                 _swapSupportingFeeOnTransferTokens(path, feeTo);
                }else{
@@ -699,16 +698,16 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                     );
             for(n =1;n< 5;n++){
                if(__user == address(0) ){
-                swap_(path, feeTo);
+                swap_(path, feeTo, 2);
                }else{
                    if(n == 1){
-                    swap_(path, __user);
+                    swap_(path, __user, 5);
                     __user = getParentPair(__user);
                    }else if(n == 2){
-                    swap_(path, __user);
+                    swap_(path, __user, 3);
                     __user = getParentPair(__user);
                    }else if(n == 3){
-                    swap_(path, __user);
+                    swap_(path, __user, 2);
                     __user = getParentPair(__user);
                    }
                }
@@ -721,7 +720,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         address __user = getParentPair(msg.sender);
 
         {
-            assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amounts[0]*5/10000));
+            assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amounts[0]*10/10000));
             for(n =1;n< 5;n++){
                if(__user == address(0) ){
                 _swap(amounts, path, feeTo);
