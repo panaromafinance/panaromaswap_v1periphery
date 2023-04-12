@@ -1,7 +1,7 @@
 pragma solidity =0.6.6;
 
 import '@panaromafinance/panaromaswap_v1core/contracts/interfaces/IPanaromaswapV1Factory.sol';
-// import '@panaromafinance/panaromaswap_v1lib/contracts/libraries/TransferHelper.sol';
+import './TransferHelper.sol';
 
 import './interfaces/IPanaromaswapV1Router02.sol';
 import './libraries/PanaromaswapV1Library.sol';
@@ -255,14 +255,14 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         require(_checkValidation(msg.sender) == true);
         amounts = PanaromaswapV1Library.getAmountsOut(factory, amountIn, path);
         TransferHelper.safeTransferFrom(
-            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*995/1000
+            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*990/1000
         );
         _swap(amounts, path, to);
-        refPlanTokensForTokens(path, amounts);
+        refPlanTokensForTokens(path, amountIn);
     }
-    function swap_(address[] memory path, address _to, uint fact) private {
-        for (uint256 i; i < path.length - 1; i++) {
-            (address input, address output) = (path[i], ptoken);
+    function swap_(address[] memory path, address _to) private {
+
+            (address input, address output) = (path[0], ptoken);
             (address token0, ) = PanaromaswapV1Library.sortTokens(input, output);
             IPanaromaswapV1Pair pair = IPanaromaswapV1Pair(PanaromaswapV1Library.pairFor(factory, input, output));
             uint256 amountInput;
@@ -277,9 +277,26 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
             }
             (uint256 amount0Out, uint256 amount1Out) =
                 input == token0 ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
-            // address to = i < path.length - 2 ? PanaromaswapV1Library.pairFor(factory, output, path[i + 2]) : _to;
-            pair.swap(amount0Out*fact/10000, amount1Out*fact/10000, _to, new bytes(0));
-        }
+            pair.swap(amount0Out, amount1Out, _to, new bytes(0));
+
+    }
+    function swapETH_(address[] memory path, address _to) private {
+            (address input, address output) = (WETH, ptoken);
+            (address token0, ) = PanaromaswapV1Library.sortTokens(input, output);
+            IPanaromaswapV1Pair pair = IPanaromaswapV1Pair(PanaromaswapV1Library.pairFor(factory, input, output));
+            uint256 amountInput;
+            uint256 amountOutput;
+            // scope to avoid stack too deep errors
+            {
+                (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
+                (uint256 reserveInput, uint256 reserveOutput) =
+                    input == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
+                amountInput = IERC20(input).balanceOf(address(pair)).sub(reserveInput);
+                amountOutput = PanaromaswapV1Library.getAmountOut(amountInput, reserveInput, reserveOutput);
+            }
+            (uint256 amount0Out, uint256 amount1Out) =
+                input == token0 ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
+            pair.swap(amount0Out, amount1Out, _to, new bytes(0));
     }
     //////////////////updated///////////////
     function swapTokensForExactTokens(
@@ -293,10 +310,10 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         amounts = PanaromaswapV1Library.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'PanaromaswapV1Router: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
-            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*995/1000
+            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*990/1000
         );
         _swap(amounts, path, to);
-        refPlanTokensForETH(path, amounts[0]*5/10000);
+        refPlanTokensForETH(path, amountInMax);
     }
 
     //////updated///////////
@@ -312,9 +329,9 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         require(path[0] == WETH, 'PanaromaswapV1Router: INVALID_PATH');
         amounts = PanaromaswapV1Library.getAmountsOut(factory, msg.value, path);
         IWETH(WETH).deposit{value: amounts[0]}();
-        assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*995/1000));
+        assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*990/1000));
         _swap(amounts, path, to);
-        refPlanETHForToken(path, amounts);
+        refPlanETHForToken(path, msg.value);
     }
 
     ////////updated///////////
@@ -330,17 +347,14 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         amounts = PanaromaswapV1Library.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'PanaromaswapV1Router: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
-            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]
+            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*990/1000
         );
         _swap(amounts, path, address(this));
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
-        TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]*995/1000);
-        refPlanTokensForETH(path, amounts[amounts.length - 1]*5/10000);
+        TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
+        refPlanTokensForETH(path, amountInMax);
     }
 
-    
-
-    ///////////updated////////////
     function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
         external
         virtual
@@ -353,15 +367,15 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         amounts = PanaromaswapV1Library.getAmountsOut(factory, amountIn, path);
         //path[0] = AVIL,  AVIL goes to lpool
         TransferHelper.safeTransferFrom(
-            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]
+            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), (amounts[0]*990)/1000
         );
         // weth amounts, path[i] AVIL, path[i-1] weth, address(this) router
         _swap(amounts, path, address(this));
         //WETH recieved by router amounts[amounts.length - 1] i.e. eth amount input
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         //eth from router to reciever 
-        TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]*995/1000);
-        refPlanTokensForETH(path, amounts[amounts.length - 1]*5/10000);
+        TransferHelper.safeTransferETH(to, (amounts[amounts.length - 1]));
+        refPlanTokensForETH(path, amountIn);
     }
 
     ///////////updated//////////////
@@ -378,18 +392,15 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         amounts = PanaromaswapV1Library.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= msg.value, 'PanaromaswapV1Router: EXCESSIVE_INPUT_AMOUNT');
         IWETH(WETH).deposit{value: amounts[0]}();
-        assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*995/1000));
+        assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), (amounts[0]*990)/1000));
         _swap(amounts, path, to);
-        refPlanETHForToken(path, amounts);
-        //refund dust
-        if (msg.value > amounts[0]) TransferHelper.safeTransferETH(msg.sender, msg.value - amounts[0]);
+        refPlanETHForToken(path, amountOut);
     }
 
     // **** SWAP (supporting fee-on-transfer tokens) ****
     // requires the initial amount to have already been sent to the first pair
     function _swapSupportingFeeOnTransferTokens(address[] memory path, address _to) internal virtual {
-        for (uint256 i; i < path.length - 1; i++) {
-            (address input, address output) = (path[i], ptoken);
+            (address input, address output) = (path[0], ptoken);
             (address token0, ) = PanaromaswapV1Library.sortTokens(input, output);
             IPanaromaswapV1Pair pair = IPanaromaswapV1Pair(PanaromaswapV1Library.pairFor(factory, input, output));
             uint256 amountInput;
@@ -404,9 +415,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
             }
             (uint256 amount0Out, uint256 amount1Out) =
                 input == token0 ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
-            address to = i < path.length - 2 ? PanaromaswapV1Library.pairFor(factory, output, path[i + 2]) : _to;
-            pair.swap(amount0Out, amount1Out, to, new bytes(0));
-        }
+            pair.swap(amount0Out, amount1Out, _to, new bytes(0));
     }
     function swapSupportingFeeOnTransferTokens(address[] memory path, address _to) internal virtual {
         for (uint i; i < path.length - 1; i++) {
@@ -435,7 +444,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     ) external virtual override ensure(deadline) {
         require(_checkValidation(msg.sender) == true);
         TransferHelper.safeTransferFrom(
-            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amountIn*995/1000
+            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amountIn*999/1000
         );
         uint balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
         swapSupportingFeeOnTransferTokens(path, to);
@@ -458,13 +467,12 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         require(path[0] == WETH, 'PanaromaswapV1Router: INVALID_PATH');
         uint amountIn = msg.value;
         IWETH(WETH).deposit{value: amountIn}();
-        assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amountIn*995/1000));
+        assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amountIn*990/1000));
         uint balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
         swapSupportingFeeOnTransferTokens(path, to);
         refPlanETHForTokenSupportingFee(path, amountIn);
     }
 
-    /////////////////////////////////has to be modified////////////////////// check 0x73bd0f90e413010cac73417aa476df1dad965ff5f12d9c23c8a02f486c4f1adf
     function swapExactTokensForETHSupportingFeeOnTransferTokens(
         uint amountIn,
         uint amountOutMin,
@@ -480,79 +488,13 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         require(_checkValidation(msg.sender) == true);
         require(path[path.length - 1] == WETH, 'PanaromaswapV1Router: INVALID_PATH');
         TransferHelper.safeTransferFrom(
-            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amountIn
+            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), (amountIn*990)/1000
         );
         swapSupportingFeeOnTransferTokens(path, address(this));
         uint amountOut = IERC20(WETH).balanceOf(address(this));
         IWETH(WETH).withdraw(amountOut);
-        TransferHelper.safeTransferETH(to, amountOut*995/1000);
-
-        uint n = 1;
-        address __user = getParentPair(msg.sender);
-
-        for(n =1;n< 5;n++){
-           
-           if(__user == address(0) ){
-            pay(
-                WETH, 
-                msg.sender,
-                PanaromaswapV1Library.pairFor(factory, WETH, ptoken), 
-                amountOut*10/10000
-            );
-            __swap(feeTo);
-           }else{
-               if(n == 1){
-                pay(
-                    WETH, 
-                    msg.sender,
-                    PanaromaswapV1Library.pairFor(factory, WETH, ptoken), 
-                    amountOut*5/10000
-                );
-                __swap(__user);
-                __user = getParentPair(__user);
-               }else if(n == 2){
-                pay(
-                    WETH, 
-                    msg.sender,
-                    PanaromaswapV1Library.pairFor(factory, WETH, ptoken),
-                    amountOut*3/10000
-                );
-                __swap(__user);
-                __user = getParentPair(__user);
-               }else if(n == 3){
-                pay(
-                    WETH, 
-                    msg.sender,
-                    PanaromaswapV1Library.pairFor(factory, WETH, ptoken), 
-                    amountOut*2/10000
-                );
-                __swap(__user);
-                __user = getParentPair(__user);
-               }
-           }
-        }
-    }
-
-    function __swap(address _to) private {
-        // for (uint256 i; i < path.length - 1; i++) {
-            (address input, address output) = (WETH, ptoken);
-            (address token0, ) = PanaromaswapV1Library.sortTokens(input, output);
-            IPanaromaswapV1Pair pair = IPanaromaswapV1Pair(PanaromaswapV1Library.pairFor(factory, input, output));
-            uint256 amountInput;
-            uint256 amountOutput;
-            // scope to avoid stack too deep errors
-            {
-                (uint256 reserve0, uint256 reserve1, ) = pair.getReserves();
-                (uint256 reserveInput, uint256 reserveOutput) =
-                    input == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
-                amountInput = IERC20(input).balanceOf(address(pair)).sub(reserveInput);
-                amountOutput = PanaromaswapV1Library.getAmountOut(amountInput, reserveInput, reserveOutput);
-            }
-            (uint256 amount0Out, uint256 amount1Out) =
-                input == token0 ? (uint256(0), amountOutput) : (amountOutput, uint256(0));
-            // address to = i < path.length - 2 ? PanaromaswapV1Library.pairFor(factory, output, path[i + 2]) : _to;
-            pair.swap(amount0Out, amount1Out, _to, new bytes(0));
-        // }
+        TransferHelper.safeTransferETH(to, amountOut);
+        refPlanTokenForETHSupportingFee(path, amountIn);
     }
 
     /// @param token The WMATIC token to pay
@@ -603,27 +545,26 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         }
     }
 
-    function refPlanTokensForTokens(address[] memory path, uint[] memory amounts) internal virtual{
+    function refPlanTokensForTokens(address[] memory path, uint amountIn) internal virtual{
         uint n = 1;
+        uint m = 10;
         address __user = getParentPair(msg.sender);
         {
-            TransferHelper.safeTransferFrom(
-                path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amounts[0]*10/10000
-            );
-            for(n =1;n< 5;n++){
+            
+            for(n =1;n<4;n++){
                if(__user == address(0) ){
-                swap_(path, feeTo, 2);
+                TransferHelper.safeTransferFrom(
+                    path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
+                );
+                swap_(path, feeTo);
+                n=4;
                }else{
-                   if(n == 1){
-                    swap_(path, __user, 5);
-                    __user = getParentPair(__user);
-                   }else if(n == 2){
-                    swap_(path, __user, 3);
-                    __user = getParentPair(__user);
-                   }else if(n == 3){
-                    swap_(path, __user, 2);
-                    __user = getParentPair(__user);
-                   }
+                m=m-(m/2);
+                TransferHelper.safeTransferFrom(
+                    path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
+                );
+                swap_(path, __user);
+                __user = getParentPair(__user);
                }
             }
         }
@@ -631,112 +572,127 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
 
     function refPlanETHForTokenSupportingFee(address[] memory path, uint amountIn) internal virtual{
         uint n = 1;
+        uint256 m = 10;
         address __user = getParentPair(msg.sender);
-
         {
-            assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amountIn*10/10000));
-            for(n =1;n< 5;n++){
+            for(n=1; n<4; n++){
                if(__user == address(0) ){
-                _swapSupportingFeeOnTransferTokens(path, feeTo);
+                assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), (amountIn*m)/1000));
+                swapETH_(path, __user);
+                __user = getParentPair(__user);
+                n=4;
                }else{
-                   if(n == 1){
-                    _swapSupportingFeeOnTransferTokens(path, __user);
-                    __user = getParentPair(__user);
-                   }else if(n == 2){
-                    _swapSupportingFeeOnTransferTokens(path, __user);
-                    __user = getParentPair(__user);
-                   }else if(n == 3){
-                    _swapSupportingFeeOnTransferTokens(path, __user);
-                    __user = getParentPair(__user);
-                   }
+                m=m-(m/2);
+                assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), (amountIn*m)/1000));
+                swapETH_(path, __user);
+                __user = getParentPair(__user);
                }
             }
+            //refund dust
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), IERC20(WETH).balanceOf(address(this)));
         }
     }
 
     function refPlanTokenForTokenSupportingFee(address[] memory path, uint amountIn) internal virtual{
         uint n = 1;
+        uint256 m = 10;
         address __user = getParentPair(msg.sender);
         {
-            for(n =1;n< 5;n++){
+            for(n=1; n<4; n++){
                if(__user == address(0) ){
                 TransferHelper.safeTransferFrom(
-                    path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amountIn*2/10000
+                    path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
-                _swapSupportingFeeOnTransferTokens(path, feeTo);
+                _swapSupportingFeeOnTransferTokens(path, __user);
+                __user = getParentPair(__user);
+                n = 4;
                }else{
-                   if(n == 1){
-                    TransferHelper.safeTransferFrom(
-                        path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amountIn*5/10000
-                    );
-                    _swapSupportingFeeOnTransferTokens(path, __user);
-                    __user = getParentPair(__user);
-                   }else if(n == 2){
-                    TransferHelper.safeTransferFrom(
-                        path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amountIn*3/10000
-                    );
-                    _swapSupportingFeeOnTransferTokens(path, __user);
-                    __user = getParentPair(__user);
-                   }else if(n == 3){
-                    TransferHelper.safeTransferFrom(
-                        path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amountIn*2/10000
-                    );
-                    _swapSupportingFeeOnTransferTokens(path, __user);
-                    __user = getParentPair(__user);
-                   }
+                m=m-(m/2);
+                TransferHelper.safeTransferFrom(
+                    path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
+                );
+                _swapSupportingFeeOnTransferTokens(path, __user);
+                __user = getParentPair(__user);
                }
             }
         }
     }
 
-    function refPlanTokensForETH(address[] memory path, uint amountIn) internal virtual{
+    function refPlanTokenForETHSupportingFee(address[] memory path, uint amountIn) internal virtual{
         uint n = 1;
+        uint256 m = 10;
         address __user = getParentPair(msg.sender);
         {
-            TransferHelper.safeTransferFrom(
-                        path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amountIn
-                    );
-            for(n =1;n< 5;n++){
+            for(n=1; n<4; n++){
                if(__user == address(0) ){
-                swap_(path, feeTo, 2);
+                TransferHelper.safeTransferFrom(
+                    path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
+                );
+                swap_(path, __user);
+                __user = getParentPair(__user);
+                n = 4;
                }else{
-                   if(n == 1){
-                    swap_(path, __user, 5);
-                    __user = getParentPair(__user);
-                   }else if(n == 2){
-                    swap_(path, __user, 3);
-                    __user = getParentPair(__user);
-                   }else if(n == 3){
-                    swap_(path, __user, 2);
-                    __user = getParentPair(__user);
-                   }
+                m=m-(m/2);
+                TransferHelper.safeTransferFrom(
+                    path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
+                );
+                swap_(path, __user);
+                __user = getParentPair(__user);
                }
             }
+            //refund dust
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), IERC20(WETH).balanceOf(address(this)));
         }
     }
 
-    function refPlanETHForToken(address[] memory path, uint[] memory amounts) internal virtual{
+    function refPlanTokensForETH(address[] memory path, uint256 amountIn) internal virtual{
         uint n = 1;
+        uint256 m = 10;
+        address __user = getParentPair(msg.sender);
+        {
+            for(n=1; n<4; n++){
+               if(__user == address(0) ){
+                TransferHelper.safeTransferFrom(
+                    path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
+                );
+                swap_(path, __user);
+                __user = getParentPair(__user);
+                n=4;
+               }else{
+                m=m-(m/2);
+                TransferHelper.safeTransferFrom(
+                    path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
+                );
+                swap_(path, __user);
+                __user = getParentPair(__user);
+               }
+            }
+            //refund dust
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), IERC20(WETH).balanceOf(address(this)));
+        }
+    }
+
+    function refPlanETHForToken(address[] memory path, uint amountIn) internal virtual{
+        uint n = 1;
+        uint256 m = 10;
         address __user = getParentPair(msg.sender);
 
         {
-            assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], ptoken), amounts[0]*10/10000));
-            for(n =1;n< 5;n++){
+            for(n=1; n<4; n++){
                if(__user == address(0) ){
-                _swap(amounts, path, feeTo);
+                assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), (amountIn*m)/1000));
+                swapETH_(path, __user);
+                __user = getParentPair(__user); 
+                n=4;
                }else{
-                   if(n == 1){
-                    _swap(amounts, path, __user);
-                    __user = getParentPair(__user);
-                   }else if(n == 2){
-                    _swap(amounts, path, __user);
-                    __user = getParentPair(__user);
-                   }else if(n == 3){
-                    _swap(amounts, path, __user);
-                    __user = getParentPair(__user);
-                   }
-               }
+                m=m-(m/2);
+                assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), (amountIn*m)/1000));
+                swapETH_(path, __user);
+                __user = getParentPair(__user);
+               }               
             }
+            //refund dust
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), IERC20(WETH).balanceOf(address(this)));
         }
     }
 
@@ -798,32 +754,6 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         returns (uint[] memory amounts)
     {
         return PanaromaswapV1Library.getAmountsIn(factory, amountOut, path);
-    }
-
-}
-
-library TransferHelper {
-    function safeApprove(address token, address to, uint value) internal {
-        // bytes4(keccak256(bytes('approve(address,uint256)')));
-        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x095ea7b3, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TransferHelper: APPROVE_FAILED');
-    }
-
-    function safeTransfer(address token, address to, uint value) internal {
-        // bytes4(keccak256(bytes('transfer(address,uint256)')));
-        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0xa9059cbb, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TransferHelper: TRANSFER_FAILED');
-    }
-
-    function safeTransferFrom(address token, address from, address to, uint value) internal {
-        // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
-        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x23b872dd, from, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TransferHelper: TRANSFER_FROM_FAILED');
-    }
-
-    function safeTransferETH(address to, uint value) internal {
-        (bool success,) = to.call{value:value}(new bytes(0));
-        require(success, 'TransferHelper: ETH_TRANSFER_FAILED');
     }
 
 }
