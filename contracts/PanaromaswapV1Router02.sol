@@ -444,7 +444,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     ) external virtual override ensure(deadline) {
         require(_checkValidation(msg.sender) == true);
         TransferHelper.safeTransferFrom(
-            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amountIn*999/1000
+            path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amountIn*990/1000
         );
         uint balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
         swapSupportingFeeOnTransferTokens(path, to);
@@ -553,6 +553,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
             
             for(n =1;n<4;n++){
                if(__user == address(0) ){
+                if(m<5) m=m-1;
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
@@ -577,6 +578,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         {
             for(n=1; n<4; n++){
                if(__user == address(0) ){
+                if(m<5) m=m-1;
                 assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), (amountIn*m)/1000));
                 swapETH_(path, __user);
                 __user = getParentPair(__user);
@@ -589,7 +591,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), IERC20(WETH).balanceOf(address(this)));
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
@@ -600,6 +602,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         {
             for(n=1; n<4; n++){
                if(__user == address(0) ){
+                if(m<5) m=m-1;
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
@@ -625,6 +628,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         {
             for(n=1; n<4; n++){
                if(__user == address(0) ){
+                if(m<5) m=m-1;
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
@@ -641,7 +645,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), IERC20(WETH).balanceOf(address(this)));
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
@@ -652,6 +656,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         {
             for(n=1; n<4; n++){
                if(__user == address(0) ){
+                if(m<5) m=m-1;
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
@@ -668,7 +673,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), IERC20(WETH).balanceOf(address(this)));
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
@@ -680,6 +685,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         {
             for(n=1; n<4; n++){
                if(__user == address(0) ){
+                if(m<5) m=m-1;
                 assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), (amountIn*m)/1000));
                 swapETH_(path, __user);
                 __user = getParentPair(__user); 
@@ -692,7 +698,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }               
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), IERC20(WETH).balanceOf(address(this)));
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
