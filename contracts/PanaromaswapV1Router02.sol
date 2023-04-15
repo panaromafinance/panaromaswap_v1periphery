@@ -548,11 +548,11 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     function refPlanTokensForTokens(address[] memory path, uint amountIn) internal virtual{
         uint n = 1;
         uint m = 10;
-        address __user = getParentPair(msg.sender);
+        (address __pair, address __parent) = getParentPair(msg.sender);
         {
             
             for(n =1;n<4;n++){
-               if(__user == address(0) ){
+               if(__parent == address(0) ){
                 if(m<5) m=m-1;
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
@@ -564,8 +564,8 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
-                swap_(path, __user);
-                __user = getParentPair(__user);
+                swap_(path, __pair);
+                (__pair, __parent) = getParentPair(__parent);
                }
             }
         }
@@ -574,20 +574,19 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     function refPlanETHForTokenSupportingFee(address[] memory path, uint amountIn) internal virtual{
         uint n = 1;
         uint256 m = 10;
-        address __user = getParentPair(msg.sender);
+        (address __pair, address __parent) = getParentPair(msg.sender);
         {
             for(n=1; n<4; n++){
-               if(__user == address(0) ){
+               if(__parent == address(0) ){
                 if(m<5) m=m-1;
                 assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), (amountIn*m)/1000));
-                swapETH_(path, __user);
-                __user = getParentPair(__user);
+                swapETH_(path, feeTo);
                 n=4;
                }else{
                 m=m-(m/2);
                 assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), (amountIn*m)/1000));
-                swapETH_(path, __user);
-                __user = getParentPair(__user);
+                swapETH_(path, __pair);
+                (__pair, __parent) = getParentPair(__parent);
                }
             }
             //refund dust
@@ -598,24 +597,24 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     function refPlanTokenForTokenSupportingFee(address[] memory path, uint amountIn) internal virtual{
         uint n = 1;
         uint256 m = 10;
-        address __user = getParentPair(msg.sender);
+        (address __pair, address __parent) = getParentPair(msg.sender);
         {
             for(n=1; n<4; n++){
-               if(__user == address(0) ){
+               if(__parent == address(0) ){
                 if(m<5) m=m-1;
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
-                _swapSupportingFeeOnTransferTokens(path, __user);
-                __user = getParentPair(__user);
+                _swapSupportingFeeOnTransferTokens(path, feeTo);
+                (__pair, __parent) = getParentPair(__parent);
                 n = 4;
                }else{
                 m=m-(m/2);
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
-                _swapSupportingFeeOnTransferTokens(path, __user);
-                __user = getParentPair(__user);
+                _swapSupportingFeeOnTransferTokens(path, __pair);
+                (__pair, __parent) = getParentPair(__parent);
                }
             }
         }
@@ -624,24 +623,23 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     function refPlanTokenForETHSupportingFee(address[] memory path, uint amountIn) internal virtual{
         uint n = 1;
         uint256 m = 10;
-        address __user = getParentPair(msg.sender);
+        (address __pair, address __parent) = getParentPair(msg.sender);
         {
             for(n=1; n<4; n++){
-               if(__user == address(0) ){
+               if(__parent == address(0) ){
                 if(m<5) m=m-1;
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
-                swap_(path, __user);
-                __user = getParentPair(__user);
+                swap_(path, feeTo);
                 n = 4;
                }else{
                 m=m-(m/2);
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
-                swap_(path, __user);
-                __user = getParentPair(__user);
+                swap_(path, __pair);
+                (__pair, __parent) = getParentPair(__parent);
                }
             }
             //refund dust
@@ -652,16 +650,16 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     function refPlanTokensForETH(address[] memory path, uint256 amountIn) internal virtual{
         uint n = 1;
         uint256 m = 10;
-        address __user = getParentPair(msg.sender);
+        (address __pair, address __parent) = getParentPair(msg.sender);
         {
             for(n=1; n<4; n++){
-               if(__user == address(0) ){
+               if(__parent == address(0) ){
                 if(m<5) m=m-1;
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
-                swap_(path, __user);
-                __user = getParentPair(__user);
+                swap_(path, feeTo);
+                (__pair, __parent) = getParentPair(__parent);
                 n=4;
                }else{
                 m=m-(m/2);
@@ -669,7 +667,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
                 swap_(path, __user);
-                __user = getParentPair(__user);
+                (__pair, __parent) = getParentPair(__parent);
                }
             }
             //refund dust
@@ -680,21 +678,20 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     function refPlanETHForToken(address[] memory path, uint amountIn) internal virtual{
         uint n = 1;
         uint256 m = 10;
-        address __user = getParentPair(msg.sender);
+        (address __pair, address __parent) = getParentPair(msg.sender);
 
         {
             for(n=1; n<4; n++){
-               if(__user == address(0) ){
+               if(__parent == address(0) ){
                 if(m<5) m=m-1;
                 assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), (amountIn*m)/1000));
-                swapETH_(path, __user);
-                __user = getParentPair(__user); 
+                swapETH_(path, feeTo);
                 n=4;
                }else{
                 m=m-(m/2);
                 assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, WETH, ptoken), (amountIn*m)/1000));
-                swapETH_(path, __user);
-                __user = getParentPair(__user);
+                swapETH_(path, __pair);
+                (__pair, __parent) = getParentPair(__parent);
                }               
             }
             //refund dust
@@ -702,9 +699,9 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         }
     }
 
-    function getParentPair(address __user) internal returns(address __pair){
-        (, address parent) = IrefWalletFactory(refWalletFactory).getUserInfo(__user);
-        (__pair, ) = IrefWalletFactory(refWalletFactory).getUserInfo(parent);
+    function getParentPair(address __user) internal returns(address __pair, address __parent){
+        (, __parent) = IrefWalletFactory(refWalletFactory).getUserInfo(__user);
+        (__pair, ) = IrefWalletFactory(refWalletFactory).getUserInfo(__parent);
     }
 
     function _checkValidation(address _user) internal returns(bool){
