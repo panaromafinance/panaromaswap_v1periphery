@@ -313,7 +313,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
             path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*990/1000
         );
         _swap(amounts, path, to);
-        refPlanTokensForETH(path, amountInMax);
+        refPlanTokensForETH(path, amounts[0]);
     }
 
     //////updated///////////
@@ -352,7 +352,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         _swap(amounts, path, address(this));
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
-        refPlanTokensForETH(path, amountInMax);
+        refPlanTokensForETH(path, amounts[0]);
     }
 
     function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
@@ -394,7 +394,9 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), (amounts[0]*990)/1000));
         _swap(amounts, path, to);
-        refPlanETHForToken(path, amountOut);
+        refPlanETHForToken(path, amounts[0]);
+        //refund dust
+        if (msg.value > amounts[0]) TransferHelper.safeTransferETH(msg.sender, msg.value - amounts[0]);
     }
 
     // **** SWAP (supporting fee-on-transfer tokens) ****
@@ -497,54 +499,6 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         refPlanTokenForETHSupportingFee(path, amountIn);
     }
 
-    /// @param token The WMATIC token to pay
-    /// @param payer The entity that must pay
-    /// @param recipient The entity that will receive payment
-    /// @param value The amount to pay
-    function pay(
-        address token,
-        address payer,
-        address recipient,
-        uint256 value
-    ) internal {
-
-        if (token == WETH && address(this).balance >= value) {
-            // pay with WETH9
-            IWETH(WETH).deposit{value: value}(); // wrap only what is needed to pay
-            IWETH(WETH).transfer(recipient, value);
-        } else if (payer == address(this)) {
-            // pay with tokens already in the contract (for the exact input multihop case)
-            TransferHelper.safeTransfer(token, recipient, value);
-        } else {
-            // pull payment
-            TransferHelper.safeTransferFrom(token, payer, recipient, value);
-        }
-    }
-
-    /// @param token The token to pay
-    /// @param payer The entity that must pay
-    /// @param recipient The entity that will receive payment
-    /// @param value The amount to pay
-    function _pay(
-        address token,
-        address payer,
-        address recipient,
-        uint256 value
-    ) internal {
-
-        if (token == ptoken && address(this).balance >= value) {
-            // pay with WETH9
-            IWETH(ptoken).deposit{value: value}(); // wrap only what is needed to pay
-            IWETH(ptoken).transfer(recipient, value);
-        } else if (payer == address(this)) {
-            // pay with tokens already in the contract (for the exact input multihop case)
-            TransferHelper.safeTransfer(token, recipient, value);
-        } else {
-            // pull payment
-            TransferHelper.safeTransferFrom(token, payer, recipient, value);
-        }
-    }
-
     function refPlanTokensForTokens(address[] memory path, uint amountIn) internal virtual{
         uint n = 1;
         uint m = 10;
@@ -590,7 +544,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(msg.sender, IERC20(WETH).balanceOf(address(this)));
+            if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
         }
     }
 
@@ -606,7 +560,6 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
                 _swapSupportingFeeOnTransferTokens(path, feeTo);
-                (__pair, __parent) = getParentPair(__parent);
                 n = 4;
                }else{
                 m=m-(m/2);
@@ -643,7 +596,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(msg.sender, IERC20(WETH).balanceOf(address(this)));
+            if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
         }
     }
 
@@ -659,19 +612,18 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
                 swap_(path, feeTo);
-                (__pair, __parent) = getParentPair(__parent);
                 n=4;
                }else{
                 m=m-(m/2);
                 TransferHelper.safeTransferFrom(
                     path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], ptoken), (amountIn*m)/1000
                 );
-                swap_(path, __user);
+                swap_(path, __pair);
                 (__pair, __parent) = getParentPair(__parent);
                }
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(msg.sender, IERC20(WETH).balanceOf(address(this)));
+            if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
         }
     }
 
@@ -695,7 +647,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }               
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransferETH(msg.sender, IERC20(WETH).balanceOf(address(this)));
+            if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
         }
     }
 
