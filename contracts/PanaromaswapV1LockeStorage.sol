@@ -108,6 +108,7 @@ contract PanaromaswapV1LockeStorage is Ownable, ReentrancyGuard {
     uint256 lockID = users[msg.sender].locksForToken[_lpToken][_index];
     TokenLock storage userLock = tokenLocks[_lpToken][lockID];
     require(lockID == _lockID && userLock.owner == msg.sender, 'LOCK MISMATCH'); // ensures correct lock is affected
+    require(userLock.unlockDate < _unlock_date, 'UNLOCK BEFORE');
     userLock.unlockDate = _unlock_date;
   }
   
