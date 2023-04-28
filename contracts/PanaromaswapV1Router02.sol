@@ -237,7 +237,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
             (address token0,) = PanaromaswapV1Library.sortTokens(input, output);
-            uint amountOut = amounts[i + 1];
+            uint amountOut = (amounts[i + 1]*990)/1000;
             (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
             address to = i < path.length - 2 ? PanaromaswapV1Library.pairFor(factory, output, path[i + 2]) : _to;
             IPanaromaswapV1Pair(PanaromaswapV1Library.pairFor(factory, input, output)).swap(
@@ -254,7 +254,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
         require(_checkValidation(msg.sender) == true);
         amounts = PanaromaswapV1Library.getAmountsOut(factory, amountIn, path);
-        require((amounts[amounts.length - 1])*10 >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        require((amounts[amounts.length - 1]) >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*990/1000
         );
@@ -329,7 +329,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         require(_checkValidation(msg.sender) == true);
         require(path[0] == WETH, 'PanaromaswapV1Router: INVALID_PATH');
         amounts = PanaromaswapV1Library.getAmountsOut(factory, msg.value, path);
-        require((amounts[amounts.length - 1])*10 >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        require((amounts[amounts.length - 1]) >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]*990/1000));
         _swap(amounts, path, to);
@@ -367,7 +367,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         require(_checkValidation(msg.sender) == true);
         require(path[path.length - 1] == WETH, 'PanaromaswapV1Router: INVALID_PATH');
         amounts = PanaromaswapV1Library.getAmountsOut(factory, amountIn, path);
-        require((amounts[amounts.length - 1])*10 >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        require((amounts[amounts.length - 1]) >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
         //path[0] = AVIL,  AVIL goes to lpool
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), (amounts[0]*990)/1000
@@ -455,7 +455,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         swapSupportingFeeOnTransferTokens(path, to);
         refPlanTokenForTokenSupportingFee(path, amountIn);
         require(
-            (IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore))*10 >= amountOutMin,
+            (IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore)) >= amountOutMin,
             'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT'
         );
     }
@@ -481,7 +481,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         swapSupportingFeeOnTransferTokens(path, to);
         refPlanETHForTokenSupportingFee(path, amountIn);
         require(
-            (IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore))*10 >= amountOutMin,
+            (IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore)) >= amountOutMin,
             'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT'
         );
     }
@@ -505,7 +505,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         );
         swapSupportingFeeOnTransferTokens(path, address(this));
         uint amountOut = IERC20(WETH).balanceOf(address(this));
-        require(amountOut*10 >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
+        require(amountOut >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
         IWETH(WETH).withdraw(amountOut);
         TransferHelper.safeTransferETH(to, amountOut);
         refPlanTokenForETHSupportingFee(path, amountIn);
@@ -556,7 +556,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }
             }
             //refund dust
-            if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
@@ -608,7 +608,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }
             }
             //refund dust
-            if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
@@ -635,7 +635,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }
             }
             //refund dust
-            if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
@@ -659,7 +659,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }               
             }
             //refund dust
-            if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
