@@ -556,7 +556,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(msg.sender, IERC20(WETH).balanceOf(address(this)));
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(WETH, msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
@@ -608,7 +608,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(msg.sender, IERC20(WETH).balanceOf(address(this)));
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(WETH, msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
@@ -635,7 +635,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(msg.sender, IERC20(WETH).balanceOf(address(this)));
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(WETH, msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
@@ -659,7 +659,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                }               
             }
             //refund dust
-            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(msg.sender, IERC20(WETH).balanceOf(address(this)));
+            if (IERC20(WETH).balanceOf(address(this)) > 0) TransferHelper.safeTransfer(WETH, msg.sender, IERC20(WETH).balanceOf(address(this)));
         }
     }
 
