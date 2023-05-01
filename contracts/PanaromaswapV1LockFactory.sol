@@ -56,6 +56,7 @@ contract PanaromaswapV1LockFactory is Ownable{
   }
 
   function addLocking(address _lpToken, uint256 _amount, uint256 _unlock_date, address _withdrawer) public {
+    require(_lpToken != address(0), 'PanaromaswapV1: Address0 Invalid!');
     require(_unlock_date < 10000000000, 'TIMESTAMP INVALID'); // prevents errors when timestamp entered in milliseconds
     require(_amount > 0, 'INSUFFICIENT');
     require(_lpToken != _withdrawer, 'PanaromaswapV1: IDENTICAL_ADDRESSES');
