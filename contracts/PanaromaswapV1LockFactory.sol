@@ -25,12 +25,22 @@ contract PanaromaswapV1LockFactory is Ownable{
   event onDeposit(address lpToken, address user, uint256 amount, uint256 lockDate, uint256 unlockDate);
 
   address public panaromaswapFactory;
+  address public _lockRouter;
+  address public deployer;
 
   constructor(address _panaromaswapFactory) public {
     panaromaswapFactory = _panaromaswapFactory;
+    deployer = msg.sender;
   }
 
+  // allows deployer to change assign _lockRouter at any time
+    function setLockRouter(address lockRouter_) external payable  {
+        require(msg.sender == deployer, 'PanaromaswapV1LockFactory::setLockRouter: not allowed');
+        _lockRouter = lockRouter_;
+    }
+
   function lockLPToken (address _lpToken, uint256 _amount, uint256 _unlock_date, address _withdrawer) external returns (address _pair) {
+    require(msg.sender == _lockRouter, 'PanaromaswapV1LockFactory::Not LockRouter!');
     require(_unlock_date < 10000000000, 'TIMESTAMP INVALID'); // prevents errors when timestamp entered in milliseconds
     require(_amount > 0, 'INSUFFICIENT');
     require(_lpToken != _withdrawer, 'PanaromaswapV1: IDENTICAL_ADDRESSES');
@@ -56,7 +66,8 @@ contract PanaromaswapV1LockFactory is Ownable{
   }
 
   function addLocking(address _lpToken, uint256 _amount, uint256 _unlock_date, address _withdrawer) public {
-    require(_lpToken != address(0), 'PanaromaswapV1: Address0 Invalid!');
+    require(msg.sender == _lockRouter, 'PanaromaswapV1LockFactory::Not LockRouter!');
+    require(_lpToken != address(0), 'PanaromaswapV1LockFactory: Address0 Invalid!');
     require(_unlock_date < 10000000000, 'TIMESTAMP INVALID'); // prevents errors when timestamp entered in milliseconds
     require(_amount > 0, 'INSUFFICIENT');
     require(_lpToken != _withdrawer, 'PanaromaswapV1: IDENTICAL_ADDRESSES');
