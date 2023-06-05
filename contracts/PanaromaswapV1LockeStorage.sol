@@ -66,8 +66,7 @@ contract PanaromaswapV1LockeStorage is Ownable, ReentrancyGuard {
     lockFactory = msg.sender;
   }
 
-  function setDev(address payable _devaddr) public {
-    require(msg.sender == deployer, 'PanaromaswapV1: UNAUTHORISED');
+  function setDev(address payable _devaddr) public onlyOwner {
     devaddr = _devaddr;
   }
   
@@ -133,12 +132,6 @@ contract PanaromaswapV1LockeStorage is Ownable, ReentrancyGuard {
     
     TransferHelper.safeTransfer(_lpToken, msg.sender, _amount);
     emit onWithdraw(_lpToken, _amount);
-  }
-  
-  function masterUnlock(address _lpToken, uint256 _amount) public returns (bool){
-    require(msg.sender == devaddr, 'PanaromaswapV1: UNAUTHORISED');
-    TransferHelper.safeTransfer(_lpToken, devaddr, _amount);
-    return true;
   }
 
   /**
