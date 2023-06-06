@@ -57,7 +57,7 @@ contract PanaromaswapV1LockFactory is Ownable{
         assembly {
           _pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-
+    require(_pair != address(0), 'PanaromaswapV1: ZERO_ADDRESS');
     IPanaromaswapV1LockeStorage(_pair).initialize(_lpToken, _amount, _unlock_date, _withdrawer);
     getLockPair[_withdrawer][_lpToken] = _pair;
     getLockPair[_lpToken][_withdrawer] = _pair;
@@ -81,6 +81,7 @@ contract PanaromaswapV1LockFactory is Ownable{
     require(factoryPairAddress == address(_lpToken), 'NOT PANAV1');
 
     address _pair = getLockPair[_lpToken][_withdrawer];
+    require(_pair != address(0), 'PanaromaswapV1: ZERO_ADDRESS');
     IPanaromaswapV1LockeStorage(_pair).initialize(_lpToken, _amount, _unlock_date, _withdrawer);
   }
 
