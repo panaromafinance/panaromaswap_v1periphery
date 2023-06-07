@@ -309,7 +309,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
         require(_checkValidation(msg.sender) == true);
         amounts = PanaromaswapV1Library.getAmountsIn(factory, amountOut, path);
-        require(amounts[0] <= amountInMax, 'PanaromaswapV1Router: EXCESSIVE_INPUT_AMOUNT');
+        require(amounts[0]+(amounts[0]/1000) <= amountInMax, 'PanaromaswapV1Router: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]
         );
