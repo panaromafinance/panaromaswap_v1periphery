@@ -521,20 +521,23 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         {
             
             for(n =1;n<4;n++){
+                address recepient;
                if(__parent == address(0) ){
                 if(m<5) m=m-1;
-                    TransferHelper.safeTransferFrom(
-                        input, msg.sender, PanaromaswapV1Library.pairFor(factory, input, output), (amountIn*m)/10000
-                    );
-                    if(input != ptoken) swap_(path, feeTo);
+                    {   (input != ptoken)? recepient = factory : recepient = feeTo;
+                        TransferHelper.safeTransferFrom(
+                        input, msg.sender, PanaromaswapV1Library.pairFor(recepient, input, output), (amountIn*m)/10000
+                        );
+                    if(input != ptoken) swap_(path, feeTo);}
                 n=4;
                }else{
                 m=m-(m/2);
-                    TransferHelper.safeTransferFrom(
-                        input, msg.sender, PanaromaswapV1Library.pairFor(factory, input, output), (amountIn*m)/10000
-                    );
+                    {   (input != ptoken)? recepient = factory : recepient = __pair;
+                        TransferHelper.safeTransferFrom(
+                        input, msg.sender, PanaromaswapV1Library.pairFor(recepient, input, output), (amountIn*m)/10000
+                        );
                     if(input != ptoken) swap_(path, __pair);
-                    (__pair, __parent) = getParentPair(__parent);
+                    (__pair, __parent) = getParentPair(__parent);}
                }
             }
         }
@@ -572,17 +575,22 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         (address __pair, address __parent) = getParentPair(msg.sender);
         {
             for(n=1; n<4; n++){
+                address recepient;
                if(__parent == address(0) ){
                 if(m<5) m=m-1;
-                {    TransferHelper.safeTransferFrom(
-                                        input, msg.sender, PanaromaswapV1Library.pairFor(factory, input, output), (amountIn*m)/10000
+                {   
+                    (input != ptoken)? recepient = factory : recepient = feeTo;
+                    TransferHelper.safeTransferFrom(
+                                        input, msg.sender, PanaromaswapV1Library.pairFor(recepient, input, output), (amountIn*m)/10000
                                     );
                                     if(input != ptoken) _swapSupportingFeeOnTransferTokens(path, feeTo);
-                                n = 4;}
+                    }            
+                n = 4;
                }else{
                 {m=m-(m/2);
-                                    TransferHelper.safeTransferFrom(
-                                        input, msg.sender, PanaromaswapV1Library.pairFor(factory, input, output), (amountIn*m)/10000
+                    (input != ptoken)? recepient = factory : recepient = __pair;    
+                    TransferHelper.safeTransferFrom(
+                                        input, msg.sender, PanaromaswapV1Library.pairFor(recepient, input, output), (amountIn*m)/10000
                                     );
                                     if(input != ptoken) _swapSupportingFeeOnTransferTokens(path, __pair);
                                     (__pair, __parent) = getParentPair(__parent);}
@@ -598,20 +606,23 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         (address __pair, address __parent) = getParentPair(msg.sender);
         {
             for(n=1; n<4; n++){
+                address recepient;
                if(__parent == address(0) ){
                 if(m<5) m=m-1;
-                TransferHelper.safeTransferFrom(
-                    input, msg.sender, PanaromaswapV1Library.pairFor(factory, input, output), (amountIn*m)/10000
+                {   (input != ptoken)? recepient = factory : recepient = feeTo;
+                    TransferHelper.safeTransferFrom(
+                    input, msg.sender, PanaromaswapV1Library.pairFor(recepient, input, output), (amountIn*m)/10000
                 );
-                if(input != ptoken)swap_(path, feeTo);
+                if(input != ptoken)swap_(path, feeTo);}
                 n = 4;
                }else{
                 m=m-(m/2);
-                TransferHelper.safeTransferFrom(
-                    input, msg.sender, PanaromaswapV1Library.pairFor(factory, input, output), (amountIn*m)/10000
+                {   (input != ptoken)? recepient = factory : recepient = __pair;
+                    TransferHelper.safeTransferFrom(
+                    input, msg.sender, PanaromaswapV1Library.pairFor(recepient, input, output), (amountIn*m)/10000
                 );
                 if(input != ptoken)swap_(path, __pair);
-                (__pair, __parent) = getParentPair(__parent);
+                (__pair, __parent) = getParentPair(__parent);}
                }
             }
             //refund dust
@@ -626,20 +637,23 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         (address __pair, address __parent) = getParentPair(msg.sender);
         {
             for(n=1; n<4; n++){
+                address recepient;
                if(__parent == address(0) ){
                 if(m<5) m=m-1;
-                TransferHelper.safeTransferFrom(
-                    input, msg.sender, PanaromaswapV1Library.pairFor(factory, input, output), (amountIn*m)/10000
+                {   (input != ptoken)? recepient = factory : recepient = feeTo;
+                    TransferHelper.safeTransferFrom(
+                    input, msg.sender, PanaromaswapV1Library.pairFor(recepient, input, output), (amountIn*m)/10000
                 );
-                if(input != ptoken)swap_(path, feeTo);
+                if(input != ptoken)swap_(path, feeTo);}
                 n=4;
                }else{
                 m=m-(m/2);
-                TransferHelper.safeTransferFrom(
-                    input, msg.sender, PanaromaswapV1Library.pairFor(factory, input, output), (amountIn*m)/10000
+                {   (input != ptoken)? recepient = factory : recepient = __pair;
+                    TransferHelper.safeTransferFrom(
+                    input, msg.sender, PanaromaswapV1Library.pairFor(recepient, input, output), (amountIn*m)/10000
                 );
                 if(input != ptoken)swap_(path, __pair);
-                (__pair, __parent) = getParentPair(__parent);
+                (__pair, __parent) = getParentPair(__parent);}
                }
             }
             //refund dust
