@@ -31,11 +31,7 @@ contract lockRouter {
 
     function createLocking(address _lpToken, uint256 _amount, uint256 _unlock_date) external returns(address _pair) {
         _addLiq(_lpToken, msg.sender, _amount, _unlock_date);
-        // _pair = lockStorageV1Library.pairFor(address(panaromaswapLockFactory), _lpToken, msg.sender);
-        // _pair = IPanaromaswapV1LockFactory(panaromaswapLockFactory).getLockPair(_lpToken, msg.sender);
-        // address _pair = lockStorageV1Library.pairFor(address(panaromaswapFactory), msg.sender, _lpToken);
         _pair = IPanaromaswapV1LockFactory(panaromaswapLockFactory).getLockPair(_lpToken, msg.sender);
         TransferHelper.safeTransferFrom(_lpToken, msg.sender, _pair, _amount);
-        // IPanaromaswapV1LockeStorage(_pair).initialize(_lpToken, _amount, _unlock_date, _withdrawer);
     }
 }

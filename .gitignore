@@ -7,3 +7,4 @@ typechain/
 hardhat.config.ts
 .npmrc
 .yarnrc
+yarn-error.log
