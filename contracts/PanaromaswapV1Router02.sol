@@ -309,7 +309,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
         require(_checkValidation(msg.sender) == true);
         amounts = PanaromaswapV1Library.getAmountsIn(factory, amountOut, path);
-        require(amounts[0]+(amounts[0]/1000) <= amountInMax, 'PanaromaswapV1Router: EXCESSIVE_INPUT_AMOUNT');
+        require(amounts[0] <= amountInMax, 'PanaromaswapV1Router: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]
         );
@@ -328,12 +328,13 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     {
         require(_checkValidation(msg.sender) == true);
         require(path[0] == WETH, 'PanaromaswapV1Router: INVALID_PATH');
-        amounts = PanaromaswapV1Library.getAmountsOut(factory, ((msg.value*999)/1000), path);
+        uint _refAmount = msg.value;
+        amounts = PanaromaswapV1Library.getAmountsOut(factory, msg.value, path);
         require(amounts[amounts.length - 1] >= amountOutMin, 'PanaromaswapV1Router: INSUFFICIENT_OUTPUT_AMOUNT');
         IWETH(WETH).deposit{value: (amounts[0])}();
         assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
-        refPlanETHForToken(msg.value);
+        refPlanETHForToken(_refAmount);
     }
 
     ////////updated///////////
@@ -347,7 +348,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         require(_checkValidation(msg.sender) == true);
         require(path[path.length - 1] == WETH, 'PanaromaswapV1Router: INVALID_PATH');
         amounts = PanaromaswapV1Library.getAmountsIn(factory, amountOut, path);
-        require(amounts[0]+(amounts[0]/1000) <= amountInMax, 'PanaromaswapV1Router: EXCESSIVE_INPUT_AMOUNT');
+        require(amounts[0] <= amountInMax, 'PanaromaswapV1Router: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amounts[0]
         );
@@ -405,7 +406,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
     // **** SWAP (supporting fee-on-transfer tokens) ****
     // requires the initial amount to have already been sent to the first pair
     function _swapSupportingFeeOnTransferTokens(address[] memory path, address _to) internal virtual {
-            (address input, address output) = (path[0], ptoken);
+            (address input, address output) = (path[0] == ptoken)?(ptoken, path[1]):(path[0], ptoken);
             (address token0, ) = PanaromaswapV1Library.sortTokens(input, output);
             IPanaromaswapV1Pair pair = IPanaromaswapV1Pair(PanaromaswapV1Library.pairFor(factory, input, output));
             uint256 amountInput;
@@ -477,7 +478,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
         require(path[0] == WETH, 'PanaromaswapV1Router: INVALID_PATH');
         uint amountIn = msg.value;
         IWETH(WETH).deposit{value: amountIn}();
-        assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), ((amountIn*999)/1000)));
+        assert(IWETH(WETH).transfer(PanaromaswapV1Library.pairFor(factory, path[0], path[1]), amountIn));
         uint balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
         swapSupportingFeeOnTransferTokens(path, to);
         require(
@@ -581,7 +582,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                     TransferHelper.safeTransferFrom(
                         input, msg.sender, recepient, (amountIn*m)/10000
                     );
-                    if(input != ptoken) swapSupportingFeeOnTransferTokens(path, feeTo);          
+                    if(input != ptoken) _swapSupportingFeeOnTransferTokens(path, feeTo);          
                     n = 4;
                    }else{
                     address recepient;
@@ -590,7 +591,7 @@ contract PanaromaswapV1Router02 is IPanaromaswapV1Router02 {
                     TransferHelper.safeTransferFrom(
                         input, msg.sender, recepient, (amountIn*m)/10000
                     );
-                    if(input != ptoken) swapSupportingFeeOnTransferTokens(path, __pair);
+                    if(input != ptoken) _swapSupportingFeeOnTransferTokens(path, __pair);
                     (__pair, __parent) = getParentPair(__parent);
                    }
                 }
