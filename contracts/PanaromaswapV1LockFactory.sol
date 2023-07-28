@@ -40,10 +40,10 @@ contract PanaromaswapV1LockFactory is Ownable{
     }
 
   function lockLPToken (address _lpToken, uint256 _amount, uint256 _unlock_date, address _withdrawer) external returns (address _pair) {
+    // require(msg.sender == _lockRouter, 'PanaromaswapV1LockFactory::Not LockRouter!');
     require(_unlock_date > block.timestamp, 'PanaromaswapV1: Invalid Unlock time!');
     require(_unlock_date < 10000000000, 'TIMESTAMP INVALID'); // prevents errors when timestamp entered in milliseconds
     require(_amount > 0, 'INSUFFICIENT');
-    require(_lpToken != address(0), 'PanaromaswapV1LockFactory: Address0 Invalid!');
     require(_lpToken != _withdrawer, 'PanaromaswapV1: IDENTICAL_ADDRESSES');
     (address token0, address token1) = _lpToken < _withdrawer ? (_lpToken, _withdrawer) : (_withdrawer, _lpToken);
     require(token0 != address(0), 'PanaromaswapV1: ZERO_ADDRESS');
@@ -67,6 +67,7 @@ contract PanaromaswapV1LockFactory is Ownable{
   }
 
   function addLocking(address _lpToken, uint256 _amount, uint256 _unlock_date, address _withdrawer) public {
+    // require(msg.sender == _lockRouter, 'PanaromaswapV1LockFactory::Not LockRouter!');
     require(_unlock_date > block.timestamp, 'PanaromaswapV1: Invalid Unlock time!');
     require(_lpToken != address(0), 'PanaromaswapV1LockFactory: Address0 Invalid!');
     require(_unlock_date < 10000000000, 'TIMESTAMP INVALID'); // prevents errors when timestamp entered in milliseconds

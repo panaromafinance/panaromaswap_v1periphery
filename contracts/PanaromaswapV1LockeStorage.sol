@@ -30,11 +30,13 @@ interface IPanaromaFactory {
 
 contract PanaromaswapV1LockeStorage is Ownable, ReentrancyGuard {
 
-  address public deployer = 0x4E7C528f779ba863659520F3B8997e0e3ED480a2;
+  address public deployer = 0x58599F6e64d3844c42934205e60F2A1dcE623748;
   using SafeMath for uint256;
   using EnumerableSet for EnumerableSet.AddressSet;
   address public lockFactory;
   mapping (address => mapping (address => uint256)) private _allowed;
+
+  address public panaromaswapFactory = 0x150170a4A4fA8A34dfC407f68CDE789E4dFfC103;
 
   struct UserInfo {
     EnumerableSet.AddressSet lockedTokens; // records all tokens the user has locked
@@ -88,7 +90,7 @@ contract PanaromaswapV1LockeStorage is Ownable, ReentrancyGuard {
     token_lock.lockID = tokenLocks[_lpToken].length;
     token_lock.owner = _withdrawer;
 
-    // record the lock for the univ1pair
+    // record the lock for the panav1pair
     tokenLocks[_lpToken].push(token_lock);
     lockedTokens.add(_lpToken);
 

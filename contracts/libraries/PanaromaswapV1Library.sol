@@ -21,7 +21,7 @@ library PanaromaswapV1Library {
                 hex'ff',
                 factory,
                 keccak256(abi.encodePacked(token0, token1)),
-                hex'eecf70410ee7829f1e5050771e2f0e3c7a5b9f4a6c29d0bb1b31dd79fa6b3aec' // init code hash
+                hex'dba94e407c3f312e94bf26f381b24ddafdbf4a893f71c30222e2b14c7eeaba07' // init code hash
             ))));
     }
 
@@ -65,6 +65,17 @@ library PanaromaswapV1Library {
         amounts[0] = amountIn;
         for (uint i; i < path.length - 1; i++) {
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
+            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
+        }
+    }
+
+    // performs chained getAmountOut calculations on any number of pairs while referal active
+    function _getAmountsOut(address factory, uint amountIn, address[] memory path) internal view returns (uint[] memory amounts) {
+        require(path.length >= 2, 'PanaromaswapV1Library: INVALID_PATH');
+        amounts = new uint[](path.length);
+        amounts[0] = amountIn;
+        for (uint i; i < path.length - 1; i++) {
+            (uint reserveIn, uint reserveOut) = getReserves(factory, 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889, 0xCfc55C559E72069cf6ED4e2c73f8756453978bDF);
             amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
         }
     }
